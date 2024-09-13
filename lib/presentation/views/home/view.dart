@@ -2,14 +2,9 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:recipe/app/app_images.dart';
 import 'package:recipe/core/logic/helper_methods.dart';
-import 'package:recipe/cubits/recipes_cubit/cubit.dart';
-import 'package:recipe/cubits/recipes_cubit/states.dart';
 import 'package:recipe/presentation/components/custom_button.dart';
 import 'package:recipe/presentation/views/add_recipe/view.dart';
 import 'package:recipe/presentation/views/user_auth/log_in/login.dart';
@@ -24,15 +19,16 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
     return Scaffold(
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 90),
         child: FloatingActionButton(
           onPressed: () {
             FirebaseAuth.instance.signOut();
-            navigateTo(LogIn(), removeHistory: true);
+            navigateTo(const LogIn(), removeHistory: true);
           },
-          child: Icon(Icons.logout_sharp),
+          child: const Icon(Icons.logout_sharp),
         ),
       ),
       appBar: AppBar(
@@ -46,16 +42,20 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           StreamBuilder(
-            stream:
-                FirebaseFirestore.instance.collection('recipes').snapshots(),
+            stream: FirebaseFirestore.instance
+                .collection('recipes')
+                .where('userId', isEqualTo: userId)
+                .snapshots(),
             builder: (context, snapshot) {
               List<Container> recipesWidget = [];
               if (snapshot.hasData) {
                 final recipes = snapshot.data?.docs.reversed.toList();
                 for (var recipe in recipes!) {
-                  final imgPath = recipe.data().containsKey('imgPath') ? recipe['imgPath'] : null;
+                  final imgPath = recipe.data().containsKey('imgPath')
+                      ? recipe['imgPath']
+                      : null;
                   final recipeWidget = Container(
-                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                      padding: EdgeInsets.symmetric(vertical: 16.h),
                       decoration: BoxDecoration(
                           color: Colors.white10,
                           borderRadius: BorderRadius.circular(20)),
@@ -79,7 +79,7 @@ class _HomePageState extends State<HomePage> {
                                 const SizedBox(height: 10),
                                 Text(
                                   recipe['ingredients'],
-                                  maxLines: 2,
+                                  maxLines: 7,
                                   style: const TextStyle(
                                       color: Colors.grey,
                                       overflow: TextOverflow.ellipsis),
@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
                                 const SizedBox(height: 10),
                                 Text(
                                   recipe['instructions'],
-                                  maxLines: 2,
+                                  maxLines: 7,
                                   style: const TextStyle(
                                       color: Colors.grey,
                                       overflow: TextOverflow.ellipsis),
@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage> {
               }
               return Expanded(
                   child: ListView(
-                    padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 children: recipesWidget,
               ));
             },

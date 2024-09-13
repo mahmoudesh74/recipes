@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:recipe/core/logic/helper_methods.dart';
 
 class FirebaseAuthService {
   FirebaseAuth auth = FirebaseAuth.instance;
